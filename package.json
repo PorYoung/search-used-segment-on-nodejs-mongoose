@@ -1,0 +1,19 @@
+{
+  "name": "search",
+  "version": "1.0.0",
+  "description": "keyword search",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "search",
+    "segment"
+  ],
+  "author": "PorYoung",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^4.11.7",
+    "segment": "^0.1.3"
+  }
+}
