@@ -94,37 +94,6 @@ function splitText(text,convert/*Boolean*/) {
     return orderByWeight(ordResult);
 }
 
-// user.create({
-//     content: "中央民族大学研一，求初高中家教，大一开始一直兼职家教\n" +
-//     "家教经验丰富，从大一开始就利用课余时间做兼职家教，初高中学生均辅导过，而且根据每个学生不\n" +
-//     "同的学习基础来调节自己的讲课方法，\n" +
-//     "学生收获很大，学习成绩进步很大。\n" +
-//     "研一辅导一个初中男孩英语，他调皮贪玩，学习成绩很差，经常不及格，但是通过接触我发现他很聪\n" +
-//     "明。根据他的情况，我选择放慢讲课速\n" +
-//     "度，要求他每道题都要写清步骤，做题思路，帮他养成认真的好习惯，通过我一个月的辅导，他的学\n" +
-//     "习成绩有了很大的进步。"
-// });
-//
-// user.create({
-//     content: "我的性格开朗，能够和孩子家长一同构建轻松愉悦的氛围，而且我的理科成绩一直是我高中的强项，不管是数学，物理，化学我都有自己独到的学习方法，并且我和乐意与孩子一同分享我高中，初中的学习经历，不单单回忆过去的往事，同时也是让我和孩子产生共鸣，拉近师生的关系，彼此达到一同进步的目的。"
-// });
-//
-// user.create({
-//     content: "授课经验：我在新东方工作8年任，教学组组长能够准确的把握，曾经多次开展讲座，曾参加过2011年高考英\n" +
-//     "语阅卷，能够准确把握初高中英语的考点。\n" +
-//     "      授课风格：课上幽默教学，和学生打成一片，但又不缺乏严格和严肃，收缩自如。擅长带的学生有三\n" +
-//     "类：1，基础较差的学生    2，基础中等，想拔高的学生   3，厌学，调皮的学生。教学案例：1，有个学生A，基础\n" +
-//     "很差，辅导前成绩60多分（满分150），对待学习没有兴趣，但又迫于高考的压力不得不补课，我先从完形开始，\n" +
-//     "帮助他记忆高频词汇，原来孩子最多对4个，甚至有的时候成功避开所有正确答案，经过一段时间的辅导，他在期末\n" +
-//     "考试当中，20个对了14个，从此信心大增，接着我给他细心讲解其他模块，在高考的时候考了97分，考上了北京\n" +
-//     "理工大学。2，B学生基础很好，但是不稳定，有的时候考110，有的时候考90，造成这种现象的原因就是没有知识\n" +
-//     "框架，存在漏洞，所以我帮她建立知识框架并查漏补缺，最终英语以140分的成绩进入北京外国语大学。交给我，\n" +
-//     "您就\n" +
-//     "落“放心”俩字，以\"专业\"。\n" +
-//     "      收费标准：200---300元/小时。根据年级不同，收费不同，具体预约后电话详谈"
-// });
-//对关键词进行排序
-
 //①全文匹配 权重1000
 function allCompare(key,query,callback) {
     user
@@ -135,6 +104,8 @@ function allCompare(key,query,callback) {
             }else {
                 result.forEach(function (t) {
                     t.weight?t.weight+=1000:t.weight=1000;
+                    //记录匹配
+                    t.keywords?t.keywords+=";"+query+";":t.keywords=query+";";
                 });
                 callback(err,result);
             }
@@ -153,10 +124,13 @@ function keyWordCompare(key,keywords,callback) {
                 else{
                     result.forEach(function (t) {
                         t.weight?t.weight+=keywords[i].weight:t.weight=keywords[i].weight;
+                        //记录每个匹配关键词
+                        t.keywords?t.keywords+=";"+keywords[i].w+";":t.keywords=keywords[i].w+";";
                         for (var j in arr){
                             //可能需要修改比较条件-content耗时-仅做测试用
                             if(arr[j].content == t.content){
                                 arr[j].weight += t.weight;
+                                arr[j].keywords += ";"+t.keywords+";";
                                 return;
                             }
                         }
@@ -184,9 +158,11 @@ function search(key,query,callback) {
             else {
                 keywordResult.forEach(function (t) {
                     for (var i in list){
-                        //可能需要修改比较条件
+                        //可能需要修改比较条件-content耗时-仅作测试用
                         if(list[i].content == t.content){
                             list[i].weight += t.weight;
+                            //记录匹配的关键字
+                            list[i].keywords += t.keywords;
                             return;
                         }
                     }
@@ -200,12 +176,25 @@ function search(key,query,callback) {
     })
 }
 
+//分页(页码从第一页始)
+function pages(data,counts,pageNum) {
+    var result = [],
+        start = parseInt(counts*(pageNum-1)),
+        to = counts*pageNum>=data.length?data.length:counts*pageNum;
+    for (var i = start;i<to;i++){
+        result.push(data[i]);
+    }
+    return result;
+}
+
 search("content","北京师范大学物理老师，有丰富的教学经验",function (err,result) {
     if(err) console.log(err);
     else {
+        //每页两条数据，获取第二页
+        result = pages(result,2,2);
         console.log(result.length);
         result.forEach(function (t) {
-            console.log(t+"=>"+t.weight);
+            console.log(t+"=>"+t.weight+"=>"+t.keywords);
         })
     }
 });
